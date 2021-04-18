@@ -154,7 +154,9 @@ const bytecode = {
     "231:2429:0:-:0;;;796:648;5:9:-1;2:2;;;27:1;24;17:12;2:2;796:648:0;;;;;;;;;;;;;;;15:2:-1;10:3;7:11;4:2;;;31:1;28;21:12;4:2;796:648:0;;;;;;;;;;;;;19:11:-1;14:3;11:20;8:2;;;44:1;41;34:12;8:2;71:11;66:3;62:21;55:28;;123:4;118:3;114:14;159:9;141:16;138:31;135:2;;;182:1;179;172:12;135:2;219:3;213:10;330:9;325:1;311:12;307:20;289:16;285:43;282:58;261:11;247:12;244:29;233:115;230:2;;;361:1;358;351:12;230:2;384:12;379:3;372:25;420:4;415:3;411:14;404:21;;0:432;;796:648:0;;;;;;;;;;23:1:-1;8:100;33:3;30:1;27:10;8:100;;;99:1;94:3;90:11;84:18;80:1;75:3;71:11;64:39;52:2;49:1;45:10;40:15;;8:100;;;12:14;796:648:0;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;906:42;981;9015:15:1;8998:32;;;;;;;;;;;;9062:5;9036:32;;;;;;;;;;;;8933:140;;1077:5:0::1;1070:4;:12;;;;;;;;;;;;:::i;:::-;;1104:10;1092:9;;:22;;;;;;;;;;;;;;;;;;1139:13;1124:12;:28;;;;1176:12;1162:11;:26;;;;1212:1;1198:11;:15;;;;1252:12;;1238:27;;;5:9:-1;2:2;;;27:1;24::::0;17:12:::1;2:2;1238:27:0;;;;;;;;;;;;;;;;;;;;;;;29:2:-1;21:6;17:15;125:4;109:14;101:6;88:42;156:4;148:6;144:17;134:27;;0:165;1238:27:0;;;;1223:12;:42;;;;;;;;;;;;:::i;:::-;;1292:1;1275:6;;:19;;;;;;;;;;;;;;;;;;1326:66;1313:79;;:10;:79;;;;1411:14;1402:6;:23;;;;796:648:::0;;;231:2429;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;:::i;:::-;;;:::o;:::-;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;:::i;:::-;;;:::o;:::-;;;;;;;;;;;;;;;;;;;;;;;;;;;:::o;:::-;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;:::o;:::-;;;;;;;;;;;;;;;;;",
 };
 
-async function interactWithContract() {
+let contracts = {};
+
+async function init() {
   let ethereum = window.ethereum;
   await ethereum.enable();
 
@@ -170,6 +172,10 @@ async function interactWithContract() {
     .addEventListener("click", () =>
       deployContract(factory, raffleName, totalTickets, ticketPrice)
     );
+
+  document
+    .getElementById("buy_tickets")
+    .addEventListener("click", () => buyTickets());
 }
 
 function deployContract(factory, raffleName, totalTickets, ticketPrice) {
@@ -178,10 +184,47 @@ function deployContract(factory, raffleName, totalTickets, ticketPrice) {
     .then((deployedContract) => {
       console.log(deployedContract);
       alert("deployed contract!");
+      contracts[deployedContract.address] = deployedContract;
+      addDeployedContractToList(
+        deployedContract.address,
+        raffleName,
+        totalTickets,
+        ticketPrice
+      );
     })
     .catch((e) => alert(e));
 }
 
-function 
+function addDeployedContractToList(address, name, totalTickets, ticketPrice) {
+  document
+    .getElementById("deployed_contracts_list")
+    .appendChild(
+      newContractListElement(address, name, totalTickets, ticketPrice)
+    );
+}
 
-interactWithContract();
+function newContractListElement(address, name, totalTickets, ticketPrice) {
+  let liTitle = document.createElement("h3");
+  liTitle.textContent = `${name}\n${address}`;
+
+  let liBody = document.createElement("p");
+  liBody.textContent = `tickets: ${totalTickets}\nprice: ${ticketPrice}`;
+
+  let li = document.createElement("li");
+  li.appendChild(liTitle);
+  li.appendChild(liBody);
+
+  return li;
+}
+
+function buyTickets() {
+  console.log(`CONTRACTS: ${contracts}`);
+  let address = document.getElementById("contract_address").value;
+  console.log(contracts[address]);
+  console.log(contracts[address].soldTickets());
+  contracts[address]
+    .sellTickets({ value: BigInt("300000000000000000") })
+    .then((tx) => console.log(tx));
+}
+
+init();
