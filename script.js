@@ -1,6 +1,3 @@
-//import { default as BigNumber } from "bignumber.js";
-//import { ethers } from "ethers";
-
 const abi = [
   {
     inputs: [
@@ -165,18 +162,26 @@ async function interactWithContract() {
   const signer = provider.getSigner();
   const factory = new ethers.ContractFactory(abi, bytecode, signer);
 
-  contract = null;
   raffleName = new ethers.utils.formatBytes32String("money!");
   totalTickets = 3;
   ticketPrice = BigInt("100000000000000000"); // 0.1 Ether
+  document
+    .getElementById("deploy_button")
+    .addEventListener("click", () =>
+      deployContract(factory, raffleName, totalTickets, ticketPrice)
+    );
+}
+
+function deployContract(factory, raffleName, totalTickets, ticketPrice) {
   factory
     .deploy(raffleName, totalTickets, ticketPrice)
     .then((deployedContract) => {
-      contract = deployedContract;
-    });
-  console.log(contract);
-
-  //provider.listAccounts().then((result) => console.log(`accounts: ${result}`));
+      console.log(deployedContract);
+      alert("deployed contract!");
+    })
+    .catch((e) => alert(e));
 }
+
+function 
 
 interactWithContract();
